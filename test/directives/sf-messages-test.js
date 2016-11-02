@@ -48,4 +48,45 @@ describe('directive',function() {
 
     });
   });
+
+  it('should display error messages when schemaFormValidate is broadcasted', function(){
+    var exampleSchema = {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": ["null", "string"]
+        }
+      }
+    };
+
+    inject(function($compile,$rootScope) {
+      var scope = $rootScope.$new();
+
+      scope.model = {};
+      scope.schema = exampleSchema;
+      scope.form = [{
+          key: 'name',
+          $validators: {
+            custom: function(value){
+              return !!value;
+            }
+          },
+          validationMessage: {
+            custom: 'This is required!'
+          }
+        }];
+
+      scope.validateForm = function(){
+        scope.$broadcast('schemaFormValidate');
+      };
+
+      var tmpl = angular.element('<form ng-submit="validateForm()" sf-schema="schema" sf-form="form" sf-model="model"></form>');
+
+      $compile(tmpl)(scope);
+      $rootScope.$apply();
+
+      var helpBlock = tmpl.children().find('div.help-block');
+      helpBlock.text().should.equal('');
+    });
+  })
 });
